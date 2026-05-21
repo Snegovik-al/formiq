@@ -3,19 +3,19 @@ import Stripe from 'stripe'
 import { getSession } from '@/lib/auth/jwt'
 import { prisma } from '@/lib/db/prisma'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
-
-const PRICE_IDS: Record<string, string> = {
-  monthly: process.env.STRIPE_MONTHLY_PRICE_ID!,
-  yearly:  process.env.STRIPE_YEARLY_PRICE_ID!,
-}
-
 export async function POST(request: NextRequest) {
+  if (!process.env.STRIPE_SECRET_KEY) {
+    return NextResponse.json({ error: 'Payments not configured' }, { status: 503 })
+  }
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
+
   const session = await getSession()
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { plan } = await request.json()
-  const priceId = PRICE_IDS[plan]
+  const priceId = plan === 'yearly'
+    ? process.env.STRIPE_YEARLY_PRICE_ID
+    : process.env.STRIPE_MONTHLY_PRICE_ID
   if (!priceId) return NextResponse.json({ error: 'Invalid plan' }, { status: 400 })
 
   const user = await prisma.user.findUnique({ where: { id: session.userId } })
