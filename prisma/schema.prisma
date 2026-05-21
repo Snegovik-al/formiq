@@ -1,0 +1,121 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String?
+  passwordHash String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  profile      UserProfile?
+  subscription Subscription?
+  programs     Program[]
+  workouts     Workout[]
+  workoutLogs  WorkoutLog[]
+  strengthRecs StrengthRecord[]
+}
+
+model UserProfile {
+  id                 String   @id
+  user               User     @relation(fields: [id], references: [id], onDelete: Cascade)
+  age                Int
+  gender             String
+  heightCm           Float?
+  weightKg           Float?
+  primaryGoal        String
+  secondaryGoals     String   @default("[]")
+  fitnessLevel       String
+  recentActivity     String   @default("none")
+  workoutsPerWeek    Int      @default(3)
+  sessionDurationMin Int      @default(45)
+  preferredTime      String   @default("flexible")
+  location           String   @default("gym")
+  equipment          String   @default("[]")
+  healthRestrictions String   @default("[]")
+  forbiddenExercises String   @default("[]")
+  injuryAreas        String   @default("[]")
+  updatedAt          DateTime @updatedAt
+}
+
+model Subscription {
+  id               String    @id @default(cuid())
+  userId           String    @unique
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  planId           String    @default("trial")
+  status           String    @default("trialing")
+  trialEnd         DateTime?
+  currentPeriodEnd DateTime?
+  stripeSubId      String?
+  stripeCustId     String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+}
+
+model Program {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title       String
+  generatedAt DateTime  @default(now())
+  weekStart   String
+  weekCount   Int       @default(4)
+  aiRationale String?
+  status      String    @default("active")
+  workouts    Workout[]
+}
+
+model Workout {
+  id            String       @id @default(cuid())
+  programId     String?
+  program       Program?     @relation(fields: [programId], references: [id], onDelete: SetNull)
+  userId        String
+  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title         String
+  subtitle      String?
+  scheduledDate String
+  weekNumber    Int          @default(1)
+  dayType       String
+  estimatedMin  Int?
+  difficulty    Int?
+  status        String       @default("scheduled")
+  aiNote        String?
+  content       String
+  createdAt     DateTime     @default(now())
+  logs          WorkoutLog[]
+}
+
+model WorkoutLog {
+  id              String    @id @default(cuid())
+  workoutId       String
+  workout         Workout   @relation(fields: [workoutId], references: [id], onDelete: Cascade)
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  startedAt       DateTime
+  completedAt     DateTime?
+  durationMin     Int?
+  completionPct   Int       @default(0)
+  perceivedEffort Int?
+  notes           String?
+  exercisesData   String?
+  createdAt       DateTime  @default(now())
+}
+
+model StrengthRecord {
+  id           String  @id @default(cuid())
+  userId       String
+  user         User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  exerciseId   String
+  date         String
+  weightKg     Float?
+  reps         Int?
+  estimated1rm Float?
+
+  @@unique([userId, exerciseId, date])
+}

@@ -1,65 +1,102 @@
-import Image from "next/image";
+'use client'
 
-export default function Home() {
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { motion } from 'framer-motion'
+import { Zap, Brain, Shield, ChevronRight } from 'lucide-react'
+
+export default function LandingPage() {
+  const router = useRouter()
+
+  useEffect(() => {
+    // If already in standalone mode — redirect to app
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      router.replace('/app/home')
+    }
+  }, [router])
+
+  const features = [
+    { icon: Brain, text: 'AI составляет твою программу за 30 секунд' },
+    { icon: Shield, text: 'Учитывает травмы и ограничения здоровья' },
+    { icon: Zap, text: 'Адаптирует нагрузку каждую неделю' },
+  ]
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+    <div className="flex flex-col min-h-dvh bg-bg px-5 pb-10">
+      {/* Hero */}
+      <div className="flex-1 flex flex-col justify-center items-center text-center pt-20">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          {/* Logo */}
+          <div className="mb-8">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-accent mb-4">
+              <span className="font-display font-bold text-2xl text-bg">F</span>
+            </div>
+            <h1 className="font-display font-bold text-5xl text-text tracking-tight">
+              FORMIQ
+            </h1>
+            <p className="text-muted mt-2 text-base">Your body. Your AI. Your form.</p>
+          </div>
+
+          {/* Value prop */}
+          <div className="mb-10">
+            <h2 className="text-2xl font-bold text-text leading-tight mb-3">
+              AI-тренер, который знает{' '}
+              <span className="text-accent">твоё тело</span>
+            </h2>
+            <p className="text-muted text-base max-w-sm mx-auto leading-relaxed">
+              Персональные тренировки, которые адаптируются под тебя каждую неделю. Без зала. Без опыта. Просто начни.
+            </p>
+          </div>
+
+          {/* Features */}
+          <div className="space-y-3 mb-10 text-left max-w-xs mx-auto">
+            {features.map(({ icon: Icon, text }, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.2 + i * 0.1 }}
+                className="flex items-center gap-3"
+              >
+                <div className="w-8 h-8 rounded-lg bg-accent-dim flex items-center justify-center shrink-0">
+                  <Icon size={16} className="text-accent" />
+                </div>
+                <span className="text-sm text-text/80">{text}</span>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+      </div>
+
+      {/* CTA */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5 }}
+        className="space-y-3"
+      >
+        <Link
+          href="/auth/signup"
+          className="flex items-center justify-center gap-2 w-full py-4 rounded-xl bg-accent text-bg font-bold text-base active:scale-95 transition-transform"
+        >
+          Начать бесплатно
+          <ChevronRight size={18} />
+        </Link>
+        <Link
+          href="/auth/login"
+          className="flex items-center justify-center w-full py-4 rounded-xl bg-surface2 text-text font-medium text-base active:scale-95 transition-transform"
+        >
+          Уже есть аккаунт
+        </Link>
+        <p className="text-center text-xs text-muted">
+          7 дней бесплатно · Отмена в любое время
+        </p>
+      </motion.div>
     </div>
-  );
+  )
 }
