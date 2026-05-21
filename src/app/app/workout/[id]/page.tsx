@@ -84,7 +84,7 @@ export default function WorkoutPlayerPage() {
       {/* ── top bar ─────────────────────────────────────── */}
       <div style={{padding:'56px 20px 16px',display:'flex',alignItems:'center',gap:12,flexShrink:0}}>
         <button onClick={()=>router.back()} style={{
-          width:38,height:38,borderRadius:12,border:'none',cursor:'pointer',
+          width:38,height:38,borderRadius:12,cursor:'pointer',
           background:'rgba(246,244,239,0.70)',backdropFilter:'blur(14px)',WebkitBackdropFilter:'blur(14px)',
           border:'0.5px solid rgba(217,210,195,0.85)',
           display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,
