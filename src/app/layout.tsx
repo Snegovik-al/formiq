@@ -11,15 +11,9 @@ export const metadata: Metadata = {
     capable: true,
     statusBarStyle: 'black-translucent',
     title: 'FORMIQ',
-    startupImage: [
-      { url: '/icons/splash-2048.png', media: '(device-width: 1024px) and (device-height: 1366px)' },
-      { url: '/icons/splash-1125.png', media: '(device-width: 375px) and (device-height: 812px)' },
-    ],
   },
   formatDetection: { telephone: false },
-  other: {
-    'mobile-web-app-capable': 'yes',
-  },
+  other: { 'mobile-web-app-capable': 'yes' },
 }
 
 export const viewport: Viewport = {
@@ -28,16 +22,16 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   viewportFit: 'cover',
-  themeColor: '#F8F4EE',
+  themeColor: '#F6F4EF',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ru">
-      <body className="bg-bg text-text font-body antialiased min-h-dvh">
-          <ServiceWorkerRegister />
+      <body className="text-text font-body antialiased min-h-dvh">
+        <ServiceWorkerRegister />
         {children}
-</body>
+      </body>
     </html>
   )
 }

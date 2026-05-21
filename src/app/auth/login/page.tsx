@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { Mail, Lock, ArrowLeft, Eye, EyeOff } from 'lucide-react'
+import { Eye, EyeOff } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -34,74 +34,64 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex flex-col min-h-dvh px-5 pb-10 relative overflow-hidden">
-      {/* Background blobs */}
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-gold/8 blur-3xl" />
-        <div className="absolute bottom-1/4 -left-16 w-48 h-48 rounded-full bg-accent/6 blur-3xl" />
+    <div className="flex flex-col min-h-dvh px-5 pb-10">
+      <div className="flex items-center pt-14 pb-8">
+        <Link href="/" className="text-[14px] text-accent font-light">← Назад</Link>
       </div>
 
-      <div className="flex items-center pt-14 pb-8 relative">
-        <Link href="/" className="p-2 -ml-2 glass rounded-xl text-muted active:scale-95 transition-transform">
-          <ArrowLeft size={20} />
-        </Link>
-      </div>
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex-1">
+        <h1 className="font-display font-normal text-dark mb-1" style={{ fontSize: 34, lineHeight: 1.1 }}>
+          Войти
+        </h1>
+        <p className="text-[13px] text-muted mb-8">Рады видеть тебя снова!</p>
 
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex-1 relative">
-        <h1 className="font-display font-black text-3xl text-text mb-1">С возвращением</h1>
-        <p className="text-muted mb-8">Войди в свой аккаунт FORMIQ</p>
-
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
-          <div>
-            <div className="relative">
-              <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted" />
-              <input
-                {...register('email')}
-                type="email"
-                placeholder="Email"
-                autoComplete="email"
-                className="w-full pl-11 pr-4 py-3.5 rounded-2xl glass text-text placeholder:text-muted border-0 focus:outline-none focus:ring-2 focus:ring-accent/30 text-base"
-              />
-            </div>
-            {errors.email && <p className="text-xs text-danger mt-1.5 pl-1">{errors.email.message}</p>}
+        <div className="glass rounded-[20px] p-[18px] flex flex-col gap-4 mb-4">
+          <div className="flex flex-col gap-1.5">
+            <span className="text-[11px] uppercase tracking-[0.06em] text-muted">Email</span>
+            <input
+              {...register('email')}
+              type="email"
+              placeholder="anna@mail.ru"
+              autoComplete="email"
+              className="glass rounded-2xl px-4 py-3.5 text-[15px] text-text placeholder:text-subtle outline-none focus:border-accent/40 w-full"
+            />
+            {errors.email && <p className="text-[12px] text-danger">{errors.email.message}</p>}
           </div>
 
-          <div>
+          <div className="flex flex-col gap-1.5">
+            <span className="text-[11px] uppercase tracking-[0.06em] text-muted">Пароль</span>
             <div className="relative">
-              <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted" />
               <input
                 {...register('password')}
                 type={showPass ? 'text' : 'password'}
-                placeholder="Пароль"
+                placeholder="••••••••"
                 autoComplete="current-password"
-                className="w-full pl-11 pr-12 py-3.5 rounded-2xl glass text-text placeholder:text-muted border-0 focus:outline-none focus:ring-2 focus:ring-accent/30 text-base"
+                className="glass rounded-2xl px-4 py-3.5 pr-12 text-[15px] text-text placeholder:text-subtle outline-none focus:border-accent/40 w-full"
               />
               <button
                 type="button"
                 onClick={() => setShowPass(!showPass)}
                 className="absolute right-4 top-1/2 -translate-y-1/2 text-muted"
               >
-                {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
+                {showPass ? <EyeOff size={15} /> : <Eye size={15} />}
               </button>
             </div>
-            {errors.password && <p className="text-xs text-danger mt-1.5 pl-1">{errors.password.message}</p>}
+            {errors.password && <p className="text-[12px] text-danger">{errors.password.message}</p>}
           </div>
 
           {error && (
-            <p className="text-sm text-danger bg-danger/8 border border-danger/15 px-4 py-3 rounded-2xl">
+            <p className="text-[12px] text-danger bg-danger/8 border border-danger/15 px-3 py-2.5 rounded-xl text-center">
               {error}
             </p>
           )}
 
-          <Button type="submit" fullWidth size="lg" loading={isSubmitting} className="mt-2">
+          <Button type="submit" fullWidth size="lg" loading={isSubmitting} onClick={handleSubmit(onSubmit)}>
             Войти
           </Button>
-        </form>
-
-        <p className="text-center text-sm text-muted mt-6">
-          Нет аккаунта?{' '}
-          <Link href="/auth/signup" className="text-accent font-semibold">Зарегистрироваться</Link>
-        </p>
+          <Button type="button" variant="outline" fullWidth size="lg" onClick={() => router.push('/auth/signup')}>
+            Нет аккаунта? Создать
+          </Button>
+        </div>
       </motion.div>
     </div>
   )

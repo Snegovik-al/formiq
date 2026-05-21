@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { Bell, Flame, ChevronRight, Zap, Trophy } from 'lucide-react'
+import { Flame, ChevronRight, Zap, Trophy } from 'lucide-react'
 import { Workout } from '@/types'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
@@ -32,22 +32,17 @@ export default function HomePage() {
           fetch('/api/auth/me'),
         ])
         const [todayJson, statsJson, meJson] = await Promise.all([
-          todayRes.json(),
-          statsRes.json(),
-          meRes.json(),
+          todayRes.json(), statsRes.json(), meRes.json(),
         ])
-
         const logs: string[] = (statsJson.logs ?? []).map((l: { completed_at: string }) => l.completed_at)
         const streak = calcStreak(logs)
         const completedThisWeek = getThisWeekCount(logs)
-
         const insights = [
-          'Регулярность важнее интенсивности. Ты на правильном пути!',
+          'Регулярность важнее интенсивности. Ты на правильном пути.',
           'AI отслеживает прогресс и скоро усилит нагрузку.',
-          'Хороший сон = лучший прогресс. Спи 7–9 часов.',
-          'Каждая тренировка делает тебя сильнее — буквально.',
+          'Хороший сон — лучший прогресс. Спи 7–9 часов.',
+          'Каждая тренировка делает тебя сильнее.',
         ]
-
         setData({
           workout: todayJson.workout ?? null,
           upcoming: todayJson.upcoming ?? null,
@@ -71,21 +66,20 @@ export default function HomePage() {
   }
 
   return (
-    <div className="px-4 pt-14 pb-28 space-y-4">
+    <div className="px-4 pt-14 pb-28 space-y-3">
+      {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-between"
+        className="mb-2"
       >
-        <div>
-          <p className="text-muted text-sm">{getGreeting()},</p>
-          <h1 className="font-display font-black text-2xl text-text">{userName}</h1>
-        </div>
-        <button className="w-10 h-10 rounded-2xl glass flex items-center justify-center text-muted active:scale-95 transition-transform">
-          <Bell size={18} />
-        </button>
+        <p className="text-[11px] uppercase tracking-[0.07em] text-muted mb-0.5">{getGreeting()},</p>
+        <h1 className="font-display font-normal text-dark" style={{ fontSize: 36, lineHeight: 1.1 }}>
+          {userName}
+        </h1>
       </motion.div>
 
+      {/* Today workout */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
         {workout ? (
           <TodayWorkoutCard workout={workout} />
@@ -100,8 +94,8 @@ export default function HomePage() {
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
         <Card>
           <div className="flex items-center justify-between mb-3">
-            <p className="text-sm font-semibold text-text">Эта неделя</p>
-            <span className="text-xs text-muted font-mono">{completedThisWeek} / {targetPerWeek}</span>
+            <p className="text-[11px] uppercase tracking-[0.05em] text-muted">Эта неделя</p>
+            <span className="text-[12px] text-muted">{completedThisWeek} из {targetPerWeek}</span>
           </div>
           <WeekDots completed={completedThisWeek} target={targetPerWeek} />
         </Card>
@@ -114,36 +108,32 @@ export default function HomePage() {
       >
         <Card>
           <div className="flex items-center gap-2 mb-2">
-            <div className="w-7 h-7 rounded-xl bg-warning/10 flex items-center justify-center">
-              <Flame size={14} className="text-warning" />
-            </div>
-            <span className="text-xs text-muted">Серия</span>
+            <Flame size={14} className="text-warning" />
+            <span className="text-[11px] uppercase tracking-[0.04em] text-muted">Серия</span>
           </div>
-          <p className="font-mono font-black text-3xl text-text leading-none">{streak}</p>
-          <p className="text-xs text-muted mt-1">дней подряд</p>
+          <p className="font-display font-normal text-dark" style={{ fontSize: 38, lineHeight: 1 }}>{streak}</p>
+          <p className="text-[11px] text-muted mt-1">дней подряд</p>
         </Card>
         <Card>
           <div className="flex items-center gap-2 mb-2">
-            <div className="w-7 h-7 rounded-xl bg-accent/10 flex items-center justify-center">
-              <Trophy size={14} className="text-accent" />
-            </div>
-            <span className="text-xs text-muted">Неделя</span>
+            <Trophy size={14} className="text-accent" />
+            <span className="text-[11px] uppercase tracking-[0.04em] text-muted">Неделя</span>
           </div>
-          <p className="font-mono font-black text-3xl text-text leading-none">{completedThisWeek}</p>
-          <p className="text-xs text-muted mt-1">тренировок</p>
+          <p className="font-display font-normal text-dark" style={{ fontSize: 38, lineHeight: 1 }}>{completedThisWeek}</p>
+          <p className="text-[11px] text-muted mt-1">тренировок</p>
         </Card>
       </motion.div>
 
       {/* AI insight */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
-        <Card variant="gold">
+        <Card>
           <div className="flex items-start gap-3">
-            <div className="w-8 h-8 rounded-xl glass-gold flex items-center justify-center shrink-0">
-              <Zap size={14} className="text-gold" />
+            <div className="w-8 h-8 rounded-full bg-accent/13 flex items-center justify-center shrink-0">
+              <Zap size={13} className="text-accent" />
             </div>
             <div>
-              <p className="text-xs text-gold font-semibold mb-1">AI Инсайт</p>
-              <p className="text-sm text-text/80 leading-relaxed">{aiInsight}</p>
+              <p className="text-[11px] uppercase tracking-[0.05em] text-muted mb-1">AI Инсайт</p>
+              <p className="text-[13px] text-text/80 leading-relaxed">{aiInsight}</p>
             </div>
           </div>
         </Card>
@@ -154,48 +144,64 @@ export default function HomePage() {
 
 function TodayWorkoutCard({ workout }: { workout: Workout }) {
   return (
-    <Card variant="glass" className="relative overflow-hidden">
-      <div className="absolute top-0 right-0 w-40 h-40 rounded-full bg-accent/5 -translate-y-12 translate-x-12 pointer-events-none" />
-      <div className="flex items-start justify-between mb-4 relative">
-        <div className="flex-1 min-w-0">
-          <Badge variant="accent" className="mb-2">Сегодня</Badge>
-          <h2 className="font-display font-bold text-xl text-text leading-tight">{workout.title}</h2>
-          <p className="text-muted text-sm mt-0.5">{workout.subtitle}</p>
-        </div>
-        <div className="flex flex-col items-end gap-1.5 ml-3 shrink-0">
-          <span className="font-mono text-sm font-bold text-text">{workout.estimated_duration} мин</span>
-          <div className="flex gap-0.5">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className={`w-1.5 h-1.5 rounded-full ${i < workout.difficulty ? 'bg-accent' : 'bg-surface3'}`} />
-            ))}
+    <div
+      className="rounded-[24px] p-[22px] relative overflow-hidden"
+      style={{ background: 'linear-gradient(135deg, rgba(123,143,122,0.92), rgba(65,70,75,0.95))' }}
+    >
+      <div
+        className="absolute -top-10 -right-8 w-36 h-36 rounded-full pointer-events-none"
+        style={{ background: 'rgba(255,255,255,0.07)' }}
+      />
+      <div className="relative">
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex-1 min-w-0">
+            <Badge variant="accent" className="mb-2 bg-white/15 text-white/90 border-white/20">Сегодня</Badge>
+            <h2 className="font-display font-normal text-white" style={{ fontSize: 24, lineHeight: 1.15 }}>
+              {workout.title}
+            </h2>
+            {workout.subtitle && (
+              <p className="text-[12px] text-white/60 mt-1">{workout.subtitle}</p>
+            )}
+          </div>
+          <div className="flex flex-col items-end gap-2 ml-3 shrink-0">
+            <span className="text-[13px] font-medium text-white/90">{workout.estimated_duration} мин</span>
+            <div className="flex gap-0.5">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className={`w-1.5 h-1.5 rounded-full ${i < workout.difficulty ? 'bg-white/80' : 'bg-white/20'}`} />
+              ))}
+            </div>
           </div>
         </div>
+        {workout.ai_note && (
+          <p className="text-[12px] text-white/65 leading-relaxed mb-4 border-l border-white/25 pl-3">
+            {workout.ai_note}
+          </p>
+        )}
+        <Link
+          href={`/app/workout/${workout.id}`}
+          className="flex items-center justify-center gap-2 w-full py-4 rounded-2xl text-white text-[15px] font-medium tracking-[0.02em] active:scale-95 transition-transform"
+          style={{ background: 'rgba(255,255,255,0.18)', border: '0.5px solid rgba(255,255,255,0.35)' }}
+        >
+          Начать тренировку
+          <ChevronRight size={17} />
+        </Link>
       </div>
-      {workout.ai_note && (
-        <p className="text-xs text-muted bg-surface2/80 rounded-2xl px-3 py-2.5 mb-4 leading-relaxed">
-          {workout.ai_note}
-        </p>
-      )}
-      <Link
-        href={`/app/workout/${workout.id}`}
-        className="flex items-center justify-center gap-2 w-full py-3.5 rounded-2xl bg-accent text-bg font-bold active:scale-95 transition-transform shadow-accent"
-      >
-        Начать тренировку
-        <ChevronRight size={18} />
-      </Link>
-    </Card>
+    </div>
   )
 }
 
 function UpcomingWorkoutCard({ workout }: { workout: Workout }) {
   return (
     <Card>
-      <p className="text-xs text-muted mb-2">Следующая тренировка</p>
-      <h2 className="font-bold text-lg text-text mb-1">{workout.title}</h2>
-      <p className="text-sm text-muted mb-4">
+      <p className="text-[11px] uppercase tracking-[0.05em] text-muted mb-2">Следующая тренировка</p>
+      <h2 className="font-display font-normal text-dark text-[22px] mb-1">{workout.title}</h2>
+      <p className="text-[12px] text-muted mb-4">
         {getDayOfWeek(new Date(workout.scheduled_date))} · {workout.estimated_duration} мин
       </p>
-      <div className="glass rounded-2xl px-4 py-3 text-sm text-muted">
+      <div
+        className="rounded-[14px] px-4 py-3 text-[13px] text-muted"
+        style={{ background: 'rgba(217,210,195,0.3)', border: '0.5px solid rgba(217,210,195,0.85)' }}
+      >
         Сегодня день отдыха — дай мышцам восстановиться
       </div>
     </Card>
@@ -206,9 +212,8 @@ function RestDayCard() {
   return (
     <Card>
       <div className="text-center py-6">
-        <div className="text-4xl mb-3">🎉</div>
-        <h2 className="font-bold text-lg text-text mb-1">Все тренировки недели выполнены!</h2>
-        <p className="text-sm text-muted">Отличная работа. Программа следующей недели уже готова.</p>
+        <h2 className="font-display font-normal text-dark text-[22px] mb-2">Все тренировки недели выполнены</h2>
+        <p className="text-[13px] text-muted">Программа следующей недели уже готова.</p>
       </div>
     </Card>
   )
@@ -220,7 +225,7 @@ function WeekDots({ completed, target }: { completed: number; target: number }) 
       {Array.from({ length: target }).map((_, i) => (
         <div
           key={i}
-          className={`flex-1 h-2 rounded-full transition-all duration-300 ${
+          className={`flex-1 h-[3px] rounded-full transition-all duration-300 ${
             i < completed ? 'bg-accent' : 'bg-surface3'
           }`}
         />
@@ -231,19 +236,16 @@ function WeekDots({ completed, target }: { completed: number; target: number }) 
 
 function HomeSkeleton() {
   return (
-    <div className="px-4 pt-14 space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="space-y-1.5">
-          <div className="h-3 w-20 skeleton rounded-full" />
-          <div className="h-6 w-32 skeleton rounded-full" />
-        </div>
-        <div className="w-10 h-10 skeleton rounded-2xl" />
+    <div className="px-4 pt-14 pb-28 space-y-3">
+      <div className="space-y-1.5 mb-2">
+        <div className="h-3 w-16 skeleton rounded-full" />
+        <div className="h-9 w-36 skeleton rounded-full" />
       </div>
-      <div className="h-44 skeleton rounded-2xl" />
-      <div className="h-16 skeleton rounded-2xl" />
+      <div className="h-48 skeleton rounded-[24px]" />
+      <div className="h-16 skeleton rounded-[20px]" />
       <div className="grid grid-cols-2 gap-3">
-        <div className="h-24 skeleton rounded-2xl" />
-        <div className="h-24 skeleton rounded-2xl" />
+        <div className="h-28 skeleton rounded-[20px]" />
+        <div className="h-28 skeleton rounded-[20px]" />
       </div>
     </div>
   )

@@ -24,132 +24,109 @@ export default function ProgressPage() {
     async function load() {
       const res = await fetch('/api/stats')
       const json = await res.json()
-
       const logs: { completed_at: string; duration_min: number | null }[] = json.logs ?? []
       const strength = json.strength ?? []
-
-      const dates = logs.map((l) => l.completed_at)
+      const dates = logs.map(l => l.completed_at)
       const totalWorkouts = logs.length
       const totalMinutes = logs.reduce((s, l) => s + (l.duration_min ?? 0), 0)
       const currentStreak = calcStreak(dates)
       const thisWeek = getThisWeekCount(dates)
       const volumeByWeek = calcVolumeByWeek(dates)
-
       const insights = [
         totalWorkouts > 10
-          ? `Ты завершил ${totalWorkouts} тренировок — это ${Math.round(totalMinutes / 60)}+ часов работы!`
+          ? `${totalWorkouts} тренировок — это ${Math.round(totalMinutes / 60)}+ часов работы над собой.`
           : 'Регулярность — ключ к результату. Каждая тренировка важна.',
         currentStreak > 3
-          ? `Серия ${currentStreak} дней! Не останавливайся.`
-          : 'Постарайся тренироваться последовательно.',
+          ? `Серия ${currentStreak} дней. Не останавливайся.`
+          : 'Постарайся тренироваться последовательно — результат придёт.',
       ]
-
-      setStats({
-        totalWorkouts,
-        totalMinutes,
-        currentStreak,
-        thisWeek,
-        volumeByWeek,
-        strengthRecords: strength,
-        aiInsight: insights[Math.floor(Math.random() * insights.length)],
-      })
+      setStats({ totalWorkouts, totalMinutes, currentStreak, thisWeek, volumeByWeek, strengthRecords: strength,
+        aiInsight: insights[Math.floor(Math.random() * insights.length)] })
       setLoading(false)
     }
     load()
   }, [])
 
   if (loading) return (
-    <div className="px-4 pt-14 pb-28 space-y-4">
-      <div className="h-7 w-36 skeleton rounded-full" />
+    <div className="px-4 pt-14 pb-28 space-y-3">
+      <div className="h-9 w-36 skeleton rounded-full" />
       <div className="grid grid-cols-2 gap-3">
-        {Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-28 skeleton rounded-2xl" />)}
+        {Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-28 skeleton rounded-[20px]" />)}
       </div>
-      <div className="h-44 skeleton rounded-2xl" />
+      <div className="h-48 skeleton rounded-[20px]" />
     </div>
   )
 
   const s = stats!
 
   return (
-    <div className="px-4 pt-14 pb-28 space-y-4">
-      <h1 className="font-display font-black text-2xl text-text">Прогресс</h1>
+    <div className="px-4 pt-14 pb-28 space-y-3">
+      <h1 className="font-display font-normal text-dark mb-2" style={{ fontSize: 32 }}>Прогресс</h1>
 
       <div className="grid grid-cols-2 gap-3">
-        <StatCard icon={Dumbbell} color="accent"   value={s.totalWorkouts}                     label="тренировок" />
-        <StatCard icon={Clock}    color="gold"      value={Math.round(s.totalMinutes / 60)}     label="часов" />
-        <StatCard icon={Flame}    color="warning"   value={s.currentStreak}                     label="дней серия" />
-        <StatCard icon={TrendingUp} color="success" value={s.thisWeek}                          label="эта неделя" />
+        <StatCard icon={Dumbbell}   value={s.totalWorkouts}                  label="тренировок" />
+        <StatCard icon={Clock}      value={Math.round(s.totalMinutes / 60)}  label="часов" />
+        <StatCard icon={Flame}      value={s.currentStreak}                  label="дней серия" />
+        <StatCard icon={TrendingUp} value={s.thisWeek}                       label="эта неделя" />
       </div>
 
-      {/* Chart */}
       <Card>
-        <p className="text-sm font-semibold text-text mb-4">Тренировок по неделям</p>
+        <p className="text-[11px] uppercase tracking-[0.05em] text-muted mb-4">Тренировок по неделям</p>
         {s.volumeByWeek.length > 0 ? (
           <ResponsiveContainer width="100%" height={120}>
             <BarChart data={s.volumeByWeek} barSize={18}>
-              <XAxis
-                dataKey="week"
-                tick={{ fontSize: 10, fill: '#8C7B68' }}
-                axisLine={false}
-                tickLine={false}
-              />
+              <XAxis dataKey="week" tick={{ fontSize: 10, fill: '#8A9096' }} axisLine={false} tickLine={false} />
               <YAxis hide />
               <Tooltip
                 contentStyle={{
-                  background: 'rgba(255,255,255,0.9)',
+                  background: 'rgba(246,244,239,0.92)',
                   backdropFilter: 'blur(12px)',
-                  border: '1px solid rgba(0,0,0,0.08)',
+                  border: '0.5px solid rgba(217,210,195,0.85)',
                   borderRadius: 12,
                   fontSize: 12,
-                  color: '#1C1916',
+                  color: '#41464B',
                 }}
-                cursor={{ fill: 'rgba(74,92,56,0.06)', radius: 6 }}
+                cursor={{ fill: 'rgba(123,143,122,0.08)', radius: 4 }}
               />
-              <Bar dataKey="count" radius={[6, 6, 0, 0]}>
+              <Bar dataKey="count" radius={[5, 5, 0, 0]}>
                 {s.volumeByWeek.map((_, i) => (
-                  <Cell
-                    key={i}
-                    fill={i === s.volumeByWeek.length - 1 ? '#4A5C38' : '#EEE8DE'}
-                  />
+                  <Cell key={i} fill={i === s.volumeByWeek.length - 1 ? '#7B8F7A' : '#D9D2C3'} />
                 ))}
               </Bar>
             </BarChart>
           </ResponsiveContainer>
         ) : (
-          <p className="text-sm text-muted text-center py-10">Данные появятся после первых тренировок</p>
+          <p className="text-[13px] text-muted text-center py-10">Данные появятся после первых тренировок</p>
         )}
       </Card>
 
-      {/* Strength records */}
       {s.strengthRecords.length > 0 && (
         <Card>
-          <p className="text-sm font-semibold text-text mb-3">Рекорды силы</p>
-          <div className="space-y-0">
-            {s.strengthRecords.slice(0, 5).map((r, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.05 }}
-                className="flex items-center justify-between py-2.5 border-b border-border last:border-0"
-              >
-                <span className="text-sm text-text/80 capitalize">{r.exercise_id.replace(/_/g, ' ')}</span>
-                <span className="font-mono font-bold text-sm text-accent">{r.weight_kg} кг</span>
-              </motion.div>
-            ))}
-          </div>
+          <p className="text-[11px] uppercase tracking-[0.05em] text-muted mb-3">Рекорды силы</p>
+          {s.strengthRecords.slice(0, 5).map((r, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: i * 0.05 }}
+              className="flex items-center justify-between py-[11px]"
+              style={{ borderBottom: i < Math.min(s.strengthRecords.length, 5) - 1 ? '0.5px solid rgba(217,210,195,0.5)' : 'none' }}
+            >
+              <span className="text-[13px] text-text capitalize">{r.exercise_id.replace(/_/g, ' ')}</span>
+              <span className="text-[13px] font-medium text-accent">{r.weight_kg} кг</span>
+            </motion.div>
+          ))}
         </Card>
       )}
 
-      {/* AI insight */}
-      <Card variant="gold">
+      <Card>
         <div className="flex items-start gap-3">
-          <div className="w-8 h-8 rounded-xl glass-gold flex items-center justify-center shrink-0">
-            <Zap size={14} className="text-gold" />
+          <div className="w-8 h-8 rounded-full bg-accent/13 flex items-center justify-center shrink-0">
+            <Zap size={13} className="text-accent" />
           </div>
           <div>
-            <p className="text-xs text-gold font-semibold mb-1">AI Анализ</p>
-            <p className="text-sm text-text/80 leading-relaxed">{s.aiInsight}</p>
+            <p className="text-[11px] uppercase tracking-[0.05em] text-muted mb-1">AI Анализ</p>
+            <p className="text-[13px] text-text/80 leading-relaxed">{s.aiInsight}</p>
           </div>
         </div>
       </Card>
@@ -157,22 +134,12 @@ export default function ProgressPage() {
   )
 }
 
-function StatCard({ icon: Icon, color, value, label }: {
-  icon: React.ElementType; color: string; value: number; label: string
-}) {
-  const colorMap: Record<string, string> = {
-    accent:  'text-accent  bg-accent/10',
-    gold:    'text-gold    bg-gold/12',
-    warning: 'text-warning bg-warning/10',
-    success: 'text-success bg-success/10',
-  }
+function StatCard({ icon: Icon, value, label }: { icon: React.ElementType; value: number; label: string }) {
   return (
     <Card>
-      <div className={`w-8 h-8 rounded-xl flex items-center justify-center mb-2 ${colorMap[color]}`}>
-        <Icon size={15} />
-      </div>
-      <p className="font-mono font-black text-3xl text-text leading-none">{value}</p>
-      <p className="text-xs text-muted mt-1">{label}</p>
+      <Icon size={15} className="text-muted mb-2" />
+      <p className="font-display font-normal text-dark" style={{ fontSize: 38, lineHeight: 1 }}>{value}</p>
+      <p className="text-[11px] text-muted mt-1 uppercase tracking-[0.04em]">{label}</p>
     </Card>
   )
 }

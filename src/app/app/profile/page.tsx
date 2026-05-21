@@ -3,10 +3,9 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { User, CreditCard, Bell, Shield, LogOut, ChevronRight, Crown } from 'lucide-react'
+import { LogOut, ChevronRight, Crown, User, Bell, Shield, CreditCard } from 'lucide-react'
 import { signOut } from '@/lib/auth/client'
 import { Card } from '@/components/ui/Card'
-import { Badge } from '@/components/ui/Badge'
 
 interface ProfileData {
   name: string
@@ -48,91 +47,95 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="px-4 pt-14 pb-28 space-y-4">
-      <h1 className="font-display font-black text-2xl text-text">Профиль</h1>
+    <div className="px-4 pt-14 pb-28 space-y-3">
+      <h1 className="font-display font-normal text-dark mb-4" style={{ fontSize: 32 }}>Профиль</h1>
 
-      {/* Avatar card */}
+      {/* Profile hero */}
+      <div
+        className="rounded-[24px] p-[26px] text-center"
+        style={{ background: 'linear-gradient(135deg, rgba(123,143,122,0.92), rgba(65,70,75,0.95))' }}
+      >
+        <div className="w-[66px] h-[66px] rounded-full flex items-center justify-center mx-auto mb-3"
+          style={{ background: 'rgba(255,255,255,0.18)' }}>
+          <span className="font-display font-normal text-white" style={{ fontSize: 28 }}>
+            {profile?.name[0]?.toUpperCase() ?? '?'}
+          </span>
+        </div>
+        <p className="font-display font-normal text-white" style={{ fontSize: 26 }}>{profile?.name ?? '...'}</p>
+        <p className="text-[12px] text-white/60 mt-1">{profile?.email ?? ''}</p>
+        <span
+          className="inline-block mt-3 px-4 py-1 rounded-full text-[12px] font-medium"
+          style={{
+            background: profile?.plan === 'trial'
+              ? 'rgba(255,200,0,0.25)'
+              : profile?.plan === 'monthly' || profile?.plan === 'yearly'
+              ? 'rgba(123,143,122,0.25)'
+              : 'rgba(255,255,255,0.15)',
+            color: profile?.plan === 'trial' ? '#ffd700'
+              : profile?.plan === 'monthly' || profile?.plan === 'yearly' ? '#90ee90'
+              : 'rgba(255,255,255,0.7)',
+          }}
+        >
+          {planLabel[profile?.plan ?? 'none']}
+        </span>
+      </div>
+
+      {/* Subscription card */}
       <Card>
-        <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-2xl bg-accent flex items-center justify-center shrink-0 shadow-accent">
-            <span className="font-display font-black text-2xl text-bg">
-              {profile?.name[0]?.toUpperCase() ?? '?'}
-            </span>
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="font-bold text-text truncate">{profile?.name ?? '...'}</p>
-            <p className="text-sm text-muted truncate">{profile?.email ?? ''}</p>
-          </div>
+        <div className="flex items-center gap-2 mb-3">
+          <Crown size={15} className="text-gold" />
+          <p className="text-[11px] uppercase tracking-[0.05em] text-muted">Подписка</p>
         </div>
-      </Card>
-
-      {/* Subscription */}
-      <Card variant={profile?.plan === 'trial' ? 'gold' : 'glass'}>
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <Crown size={15} className="text-gold" />
-            <p className="font-semibold text-text">Подписка</p>
-          </div>
-          <Badge variant={
-            profile?.plan === 'trial' ? 'gold'
-            : profile?.plan === 'monthly' || profile?.plan === 'yearly' ? 'success'
-            : 'muted'
-          }>
-            {planLabel[profile?.plan ?? 'none']}
-          </Badge>
-        </div>
-
         {profile?.plan === 'trial' && trialDaysLeft > 0 && (
-          <div className="glass-gold rounded-2xl px-3 py-2.5 mb-3">
-            <p className="text-xs text-gold">
-              Пробный период истекает через {trialDaysLeft}{' '}
-              {trialDaysLeft === 1 ? 'день' : trialDaysLeft < 5 ? 'дня' : 'дней'}
-            </p>
+          <div
+            className="rounded-[14px] px-3 py-2.5 mb-3 text-[12px]"
+            style={{ background: 'rgba(255,200,0,0.10)', border: '0.5px solid rgba(255,200,0,0.30)', color: '#8B6914' }}
+          >
+            Пробный период истекает через {trialDaysLeft}{' '}
+            {trialDaysLeft === 1 ? 'день' : trialDaysLeft < 5 ? 'дня' : 'дней'}
           </div>
         )}
-
         <button
           onClick={() => router.push('/app/subscription')}
-          className="w-full py-3.5 rounded-2xl bg-accent text-bg font-bold text-sm active:scale-95 transition-transform shadow-accent"
+          className="w-full py-4 rounded-2xl text-white text-[15px] font-medium active:scale-95 transition-transform"
+          style={{ background: '#41464B' }}
         >
-          {profile?.plan === 'trial' ? 'Перейти на Pro →' : 'Управление подпиской'}
+          {profile?.plan === 'trial' ? 'Перейти на Pro' : 'Управление подпиской'}
         </button>
       </Card>
 
-      {/* Menu items */}
-      <div className="space-y-2">
-        <MenuItem icon={User}       label="Параметры профиля"  onClick={() => {}} />
-        <MenuItem icon={Bell}       label="Уведомления"         onClick={() => {}} />
-        <MenuItem icon={Shield}     label="Конфиденциальность"  onClick={() => {}} />
-        <MenuItem icon={CreditCard} label="Биллинг"             onClick={() => router.push('/app/subscription')} />
-      </div>
+      {/* Menu */}
+      <Card className="divide-y divide-border/50 p-0 overflow-hidden">
+        {[
+          { icon: User,       label: 'Параметры профиля', onClick: () => {} },
+          { icon: Bell,       label: 'Уведомления',        onClick: () => {} },
+          { icon: Shield,     label: 'Конфиденциальность', onClick: () => {} },
+          { icon: CreditCard, label: 'Биллинг',            onClick: () => router.push('/app/subscription') },
+        ].map(({ icon: Icon, label, onClick }, i) => (
+          <button
+            key={i}
+            onClick={onClick}
+            className="w-full flex items-center gap-3 px-[18px] py-[14px] text-text active:bg-surface2/50 transition-colors"
+          >
+            <Icon size={17} className="text-muted" />
+            <span className="flex-1 text-left text-[14px]">{label}</span>
+            <ChevronRight size={14} className="text-muted" />
+          </button>
+        ))}
+      </Card>
 
       {/* Logout */}
       <motion.button
         whileTap={{ scale: 0.97 }}
         onClick={logout}
-        className="w-full flex items-center gap-3 px-4 py-4 rounded-2xl bg-danger/8 border border-danger/15 text-danger font-semibold text-sm active:scale-95 transition-transform"
+        className="w-full flex items-center gap-3 px-[18px] py-4 rounded-[18px] text-danger text-[14px] active:scale-95 transition-transform"
+        style={{ background: 'rgba(192,57,43,0.08)', border: '0.5px solid rgba(192,57,43,0.25)' }}
       >
         <LogOut size={17} />
         Выйти из аккаунта
       </motion.button>
 
-      <p className="text-center text-xs text-muted pb-2">FORMIQ v1.0 · Данные защищены</p>
+      <p className="text-center text-[11px] text-muted pb-2">FORMIQ · Данные защищены</p>
     </div>
-  )
-}
-
-function MenuItem({ icon: Icon, label, onClick }: {
-  icon: React.ElementType; label: string; onClick: () => void
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl glass text-text active:scale-[0.98] transition-transform"
-    >
-      <Icon size={17} className="text-muted" />
-      <span className="flex-1 text-left text-sm font-medium">{label}</span>
-      <ChevronRight size={15} className="text-muted" />
-    </button>
   )
 }
