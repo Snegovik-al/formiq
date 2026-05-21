@@ -43,7 +43,7 @@ export default function HomePage() {
 
         const insights = [
           'Регулярность важнее интенсивности. Ты на правильном пути!',
-          'AI отслеживает твой прогресс и скоро усилит нагрузку.',
+          'AI отслеживает прогресс и скоро усилит нагрузку.',
           'Хороший сон = лучший прогресс. Спи 7–9 часов.',
           'Каждая тренировка делает тебя сильнее — буквально.',
         ]
@@ -71,7 +71,7 @@ export default function HomePage() {
   }
 
   return (
-    <div className="px-4 pt-14 pb-6 space-y-5">
+    <div className="px-4 pt-14 pb-28 space-y-4">
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -79,10 +79,10 @@ export default function HomePage() {
       >
         <div>
           <p className="text-muted text-sm">{getGreeting()},</p>
-          <h1 className="font-display font-bold text-2xl text-text">{userName} 👋</h1>
+          <h1 className="font-display font-black text-2xl text-text">{userName}</h1>
         </div>
-        <button className="w-10 h-10 rounded-xl bg-surface2 flex items-center justify-center text-muted">
-          <Bell size={20} />
+        <button className="w-10 h-10 rounded-2xl glass flex items-center justify-center text-muted active:scale-95 transition-transform">
+          <Bell size={18} />
         </button>
       </motion.div>
 
@@ -96,46 +96,53 @@ export default function HomePage() {
         )}
       </motion.div>
 
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+      {/* Week progress */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
         <Card>
           <div className="flex items-center justify-between mb-3">
-            <p className="text-sm font-medium text-text/80">Эта неделя</p>
-            <span className="text-xs text-muted">{completedThisWeek} / {targetPerWeek}</span>
+            <p className="text-sm font-semibold text-text">Эта неделя</p>
+            <span className="text-xs text-muted font-mono">{completedThisWeek} / {targetPerWeek}</span>
           </div>
           <WeekDots completed={completedThisWeek} target={targetPerWeek} />
         </Card>
       </motion.div>
 
+      {/* Stats */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
+        initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
         className="grid grid-cols-2 gap-3"
       >
         <Card>
-          <div className="flex items-center gap-2 mb-1">
-            <Flame size={16} className="text-warning" />
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-7 h-7 rounded-xl bg-warning/10 flex items-center justify-center">
+              <Flame size={14} className="text-warning" />
+            </div>
             <span className="text-xs text-muted">Серия</span>
           </div>
-          <p className="font-mono font-bold text-2xl text-text">{streak}</p>
-          <p className="text-xs text-muted">дней подряд</p>
+          <p className="font-mono font-black text-3xl text-text leading-none">{streak}</p>
+          <p className="text-xs text-muted mt-1">дней подряд</p>
         </Card>
         <Card>
-          <div className="flex items-center gap-2 mb-1">
-            <Trophy size={16} className="text-accent" />
-            <span className="text-xs text-muted">Эта неделя</span>
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-7 h-7 rounded-xl bg-accent/10 flex items-center justify-center">
+              <Trophy size={14} className="text-accent" />
+            </div>
+            <span className="text-xs text-muted">Неделя</span>
           </div>
-          <p className="font-mono font-bold text-2xl text-text">{completedThisWeek}</p>
-          <p className="text-xs text-muted">тренировок</p>
+          <p className="font-mono font-black text-3xl text-text leading-none">{completedThisWeek}</p>
+          <p className="text-xs text-muted mt-1">тренировок</p>
         </Card>
       </motion.div>
 
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-        <Card glow>
+      {/* AI insight */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
+        <Card variant="gold">
           <div className="flex items-start gap-3">
-            <div className="w-8 h-8 rounded-lg bg-accent-dim flex items-center justify-center shrink-0">
-              <Zap size={14} className="text-accent" />
+            <div className="w-8 h-8 rounded-xl glass-gold flex items-center justify-center shrink-0">
+              <Zap size={14} className="text-gold" />
             </div>
             <div>
-              <p className="text-xs text-accent font-medium mb-1">AI Инсайт</p>
+              <p className="text-xs text-gold font-semibold mb-1">AI Инсайт</p>
               <p className="text-sm text-text/80 leading-relaxed">{aiInsight}</p>
             </div>
           </div>
@@ -147,15 +154,15 @@ export default function HomePage() {
 
 function TodayWorkoutCard({ workout }: { workout: Workout }) {
   return (
-    <Card glow className="relative overflow-hidden">
-      <div className="absolute top-0 right-0 w-32 h-32 bg-accent/5 rounded-full -translate-y-8 translate-x-8" />
-      <div className="flex items-start justify-between mb-4">
-        <div>
-          <Badge variant="accent">Сегодня</Badge>
-          <h2 className="font-display font-bold text-xl text-text mt-2 leading-tight">{workout.title}</h2>
-          <p className="text-muted text-sm mt-1">{workout.subtitle}</p>
+    <Card variant="glass" className="relative overflow-hidden">
+      <div className="absolute top-0 right-0 w-40 h-40 rounded-full bg-accent/5 -translate-y-12 translate-x-12 pointer-events-none" />
+      <div className="flex items-start justify-between mb-4 relative">
+        <div className="flex-1 min-w-0">
+          <Badge variant="accent" className="mb-2">Сегодня</Badge>
+          <h2 className="font-display font-bold text-xl text-text leading-tight">{workout.title}</h2>
+          <p className="text-muted text-sm mt-0.5">{workout.subtitle}</p>
         </div>
-        <div className="flex flex-col items-end gap-1">
+        <div className="flex flex-col items-end gap-1.5 ml-3 shrink-0">
           <span className="font-mono text-sm font-bold text-text">{workout.estimated_duration} мин</span>
           <div className="flex gap-0.5">
             {Array.from({ length: 5 }).map((_, i) => (
@@ -165,13 +172,13 @@ function TodayWorkoutCard({ workout }: { workout: Workout }) {
         </div>
       </div>
       {workout.ai_note && (
-        <p className="text-xs text-muted bg-surface2 rounded-xl px-3 py-2 mb-4 leading-relaxed">
-          🤖 {workout.ai_note}
+        <p className="text-xs text-muted bg-surface2/80 rounded-2xl px-3 py-2.5 mb-4 leading-relaxed">
+          {workout.ai_note}
         </p>
       )}
       <Link
         href={`/app/workout/${workout.id}`}
-        className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl bg-accent text-bg font-bold active:scale-95 transition-transform"
+        className="flex items-center justify-center gap-2 w-full py-3.5 rounded-2xl bg-accent text-bg font-bold active:scale-95 transition-transform shadow-accent"
       >
         Начать тренировку
         <ChevronRight size={18} />
@@ -185,9 +192,11 @@ function UpcomingWorkoutCard({ workout }: { workout: Workout }) {
     <Card>
       <p className="text-xs text-muted mb-2">Следующая тренировка</p>
       <h2 className="font-bold text-lg text-text mb-1">{workout.title}</h2>
-      <p className="text-sm text-muted mb-4">{getDayOfWeek(new Date(workout.scheduled_date))} · {workout.estimated_duration} мин</p>
-      <div className="bg-surface2 rounded-xl px-4 py-3 text-sm text-muted">
-        Сегодня день отдыха — дай мышцам восстановиться 💆
+      <p className="text-sm text-muted mb-4">
+        {getDayOfWeek(new Date(workout.scheduled_date))} · {workout.estimated_duration} мин
+      </p>
+      <div className="glass rounded-2xl px-4 py-3 text-sm text-muted">
+        Сегодня день отдыха — дай мышцам восстановиться
       </div>
     </Card>
   )
@@ -196,8 +205,8 @@ function UpcomingWorkoutCard({ workout }: { workout: Workout }) {
 function RestDayCard() {
   return (
     <Card>
-      <div className="text-center py-4">
-        <p className="text-3xl mb-2">🎉</p>
+      <div className="text-center py-6">
+        <div className="text-4xl mb-3">🎉</div>
         <h2 className="font-bold text-lg text-text mb-1">Все тренировки недели выполнены!</h2>
         <p className="text-sm text-muted">Отличная работа. Программа следующей недели уже готова.</p>
       </div>
@@ -209,7 +218,12 @@ function WeekDots({ completed, target }: { completed: number; target: number }) 
   return (
     <div className="flex gap-2">
       {Array.from({ length: target }).map((_, i) => (
-        <div key={i} className={`flex-1 h-2 rounded-full transition-all ${i < completed ? 'bg-accent' : 'bg-surface3'}`} />
+        <div
+          key={i}
+          className={`flex-1 h-2 rounded-full transition-all duration-300 ${
+            i < completed ? 'bg-accent' : 'bg-surface3'
+          }`}
+        />
       ))}
     </div>
   )
@@ -217,13 +231,19 @@ function WeekDots({ completed, target }: { completed: number; target: number }) 
 
 function HomeSkeleton() {
   return (
-    <div className="px-4 pt-14 space-y-5 animate-pulse">
-      <div className="h-10 bg-surface rounded-xl w-48" />
-      <div className="h-40 bg-surface rounded-2xl" />
-      <div className="h-24 bg-surface rounded-2xl" />
+    <div className="px-4 pt-14 space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="space-y-1.5">
+          <div className="h-3 w-20 skeleton rounded-full" />
+          <div className="h-6 w-32 skeleton rounded-full" />
+        </div>
+        <div className="w-10 h-10 skeleton rounded-2xl" />
+      </div>
+      <div className="h-44 skeleton rounded-2xl" />
+      <div className="h-16 skeleton rounded-2xl" />
       <div className="grid grid-cols-2 gap-3">
-        <div className="h-20 bg-surface rounded-2xl" />
-        <div className="h-20 bg-surface rounded-2xl" />
+        <div className="h-24 skeleton rounded-2xl" />
+        <div className="h-24 skeleton rounded-2xl" />
       </div>
     </div>
   )

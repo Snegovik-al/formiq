@@ -33,20 +33,22 @@ export default function WorkoutListPage() {
   const completed = workouts.filter(w => w.status === 'completed')
 
   return (
-    <div className="px-4 pt-14 pb-6 space-y-5">
-      <h1 className="font-display font-bold text-2xl text-text">Тренировки</h1>
+    <div className="px-4 pt-14 pb-28 space-y-5">
+      <h1 className="font-display font-black text-2xl text-text">Тренировки</h1>
 
       {loading ? (
-        <div className="space-y-3">
+        <div className="space-y-2">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-20 bg-surface rounded-2xl animate-pulse" />
+            <div key={i} className="h-20 skeleton rounded-2xl" />
           ))}
         </div>
       ) : (
         <>
           {upcoming.length > 0 && (
             <section>
-              <p className="text-sm font-medium text-muted mb-2">Предстоящие</p>
+              <p className="text-xs font-semibold text-muted uppercase tracking-wider mb-3">
+                Предстоящие
+              </p>
               <div className="space-y-2">
                 {upcoming.map((w, i) => (
                   <motion.div
@@ -64,7 +66,9 @@ export default function WorkoutListPage() {
 
           {completed.length > 0 && (
             <section>
-              <p className="text-sm font-medium text-muted mb-2">Завершённые</p>
+              <p className="text-xs font-semibold text-muted uppercase tracking-wider mb-3">
+                Завершённые
+              </p>
               <div className="space-y-2">
                 {completed.slice(0, 5).map(w => (
                   <WorkoutRow key={w.id} workout={w} />
@@ -74,9 +78,12 @@ export default function WorkoutListPage() {
           )}
 
           {workouts.length === 0 && (
-            <div className="text-center py-12">
-              <Dumbbell size={40} className="text-muted mx-auto mb-3" />
-              <p className="text-muted">Программа ещё генерируется...</p>
+            <div className="text-center py-16">
+              <div className="w-16 h-16 glass rounded-3xl flex items-center justify-center mx-auto mb-4">
+                <Dumbbell size={28} className="text-muted" />
+              </div>
+              <p className="text-text font-medium mb-1">Программа готовится</p>
+              <p className="text-muted text-sm">AI генерирует твой план тренировок...</p>
             </div>
           )}
         </>
@@ -92,18 +99,18 @@ function WorkoutRow({ workout, isToday }: { workout: Workout; isToday?: boolean 
   return (
     <Link href={isCompleted ? '#' : `/app/workout/${workout.id}`}>
       <Card className={cn(
-        'flex items-center gap-3 active:scale-98 transition-transform',
-        isToday && 'ring-1 ring-accent/30'
+        'flex items-center gap-3 active:scale-[0.98] transition-transform',
+        isToday && 'ring-1 ring-accent/25'
       )}>
         <div className={cn(
-          'w-12 h-12 rounded-xl flex items-center justify-center text-xl shrink-0',
-          isCompleted ? 'bg-success/10' : isToday ? 'bg-accent-dim' : 'bg-surface2'
+          'w-12 h-12 rounded-2xl flex items-center justify-center text-xl shrink-0',
+          isCompleted ? 'bg-success/10' : isToday ? 'bg-accent/10' : 'bg-surface2'
         )}>
           {isCompleted ? '✅' : emoji}
         </div>
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <p className={cn('font-medium text-sm truncate', isCompleted ? 'text-muted' : 'text-text')}>
+          <div className="flex items-center gap-2 flex-wrap">
+            <p className={cn('font-semibold text-sm truncate', isCompleted ? 'text-muted line-through' : 'text-text')}>
               {workout.title}
             </p>
             {isToday && <Badge variant="accent">Сегодня</Badge>}
@@ -117,7 +124,7 @@ function WorkoutRow({ workout, isToday }: { workout: Workout; isToday?: boolean 
             </span>
           </div>
         </div>
-        {!isCompleted && <ChevronRight size={16} className="text-muted shrink-0" />}
+        {!isCompleted && <ChevronRight size={15} className="text-muted shrink-0" />}
       </Card>
     </Link>
   )
