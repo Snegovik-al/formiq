@@ -3,273 +3,192 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { Flame, ChevronRight, Zap, Trophy } from 'lucide-react'
+import { Flame, ChevronRight, Zap, Trophy, Dumbbell, Play } from 'lucide-react'
 import { Workout } from '@/types'
-import { Card } from '@/components/ui/Card'
-import { Badge } from '@/components/ui/Badge'
 import { getGreeting, getDayOfWeek } from '@/lib/utils'
 
-interface HomeData {
-  workout: Workout | null
-  upcoming: Workout | null
-  streak: number
-  completedThisWeek: number
-  targetPerWeek: number
-  aiInsight: string
-  userName: string
+/* ── helpers ────────────────────────────────────────────── */
+function calcStreak(dates: string[]): number {
+  if (!dates.length) return 0
+  let streak = 0
+  let cur = new Date(); cur.setHours(0,0,0,0)
+  const sorted = [...new Set(dates.map(d => new Date(d).toDateString()))].sort().reverse()
+  for (const s of sorted) {
+    const d = new Date(s)
+    if (Math.floor((cur.getTime()-d.getTime())/86400000) <= 1) { streak++; cur=d } else break
+  }
+  return streak
+}
+function getThisWeek(dates: string[]): number {
+  const now = new Date(), start = new Date(now)
+  start.setDate(now.getDate()-now.getDay()+1); start.setHours(0,0,0,0)
+  return dates.filter(d => new Date(d) >= start).length
 }
 
+/* ── page ───────────────────────────────────────────────── */
 export default function HomePage() {
-  const [data, setData] = useState<HomeData | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [data, setData] = useState<{
+    workout: Workout|null; upcoming: Workout|null
+    streak: number; week: number; target: number
+    insight: string; name: string
+  }|null>(null)
 
   useEffect(() => {
-    async function load() {
-      try {
-        const [todayRes, statsRes, meRes] = await Promise.all([
-          fetch('/api/workouts/today'),
-          fetch('/api/stats'),
-          fetch('/api/auth/me'),
-        ])
-        const [todayJson, statsJson, meJson] = await Promise.all([
-          todayRes.json(), statsRes.json(), meRes.json(),
-        ])
-        const logs: string[] = (statsJson.logs ?? []).map((l: { completed_at: string }) => l.completed_at)
-        const streak = calcStreak(logs)
-        const completedThisWeek = getThisWeekCount(logs)
-        const insights = [
-          'Регулярность важнее интенсивности. Ты на правильном пути.',
-          'AI отслеживает прогресс и скоро усилит нагрузку.',
-          'Хороший сон — лучший прогресс. Спи 7–9 часов.',
-          'Каждая тренировка делает тебя сильнее.',
-        ]
-        setData({
-          workout: todayJson.workout ?? null,
-          upcoming: todayJson.upcoming ?? null,
-          streak,
-          completedThisWeek,
-          targetPerWeek: statsJson.workoutsPerWeek ?? 3,
-          aiInsight: insights[Math.floor(Math.random() * insights.length)],
-          userName: meJson.user?.name?.split(' ')[0] ?? 'друг',
-        })
-      } finally {
-        setLoading(false)
-      }
-    }
-    load()
+    Promise.all([fetch('/api/workouts/today'),fetch('/api/stats'),fetch('/api/auth/me')])
+      .then(rs => Promise.all(rs.map(r=>r.json())))
+      .then(([today,stats,me]) => {
+        const logs: string[] = (stats.logs??[]).map((l:{completed_at:string})=>l.completed_at)
+        const tips = ['Регулярность важнее интенсивности.','AI отслеживает прогресс и скоро усилит нагрузку.','Хороший сон — лучший прогресс.','Каждая тренировка делает тебя сильнее.']
+        setData({ workout:today.workout??null, upcoming:today.upcoming??null, streak:calcStreak(logs), week:getThisWeek(logs), target:stats.workoutsPerWeek??3, insight:tips[Math.floor(Math.random()*tips.length)], name:me.user?.name?.split(' ')[0]??'Атлет' })
+      })
   }, [])
 
-  if (loading) return <HomeSkeleton />
+  if (!data) return <Skeleton />
 
-  const { workout, upcoming, streak, completedThisWeek, targetPerWeek, aiInsight, userName } = data ?? {
-    workout: null, upcoming: null, streak: 0, completedThisWeek: 0, targetPerWeek: 3, aiInsight: '', userName: 'друг',
-  }
+  const { workout, upcoming, streak, week, target, insight, name } = data
 
   return (
-    <div className="px-4 pt-14 pb-28 space-y-3">
-      {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="mb-2"
-      >
-        <p className="text-[11px] uppercase tracking-[0.07em] text-muted mb-0.5">{getGreeting()},</p>
-        <h1 className="font-display font-normal text-dark" style={{ fontSize: 36, lineHeight: 1.1 }}>
-          {userName}
+    <div className="px-5 pt-16 pb-32 space-y-4">
+
+      {/* greeting */}
+      <motion.div initial={{opacity:0,y:-8}} animate={{opacity:1,y:0}}>
+        <p style={{fontSize:11,letterSpacing:'0.08em',color:'#7B8887',textTransform:'uppercase',fontWeight:500,marginBottom:4}}>
+          {getGreeting()},
+        </p>
+        <h1 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:42,fontWeight:400,color:'#41464B',lineHeight:1.05,letterSpacing:'-0.01em'}}>
+          {name}
         </h1>
       </motion.div>
 
-      {/* Today workout */}
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-        {workout ? (
-          <TodayWorkoutCard workout={workout} />
-        ) : upcoming ? (
-          <UpcomingWorkoutCard workout={upcoming} />
-        ) : (
-          <RestDayCard />
-        )}
+      {/* main workout card */}
+      <motion.div initial={{opacity:0,y:16}} animate={{opacity:1,y:0}} transition={{delay:0.07}}>
+        {workout ? <TodayCard workout={workout}/> : upcoming ? <UpcomingCard workout={upcoming}/> : <RestCard/>}
       </motion.div>
 
-      {/* Week progress */}
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
-        <Card>
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-[11px] uppercase tracking-[0.05em] text-muted">Эта неделя</p>
-            <span className="text-[12px] text-muted">{completedThisWeek} из {targetPerWeek}</span>
+      {/* week strip */}
+      <motion.div initial={{opacity:0,y:16}} animate={{opacity:1,y:0}} transition={{delay:0.12}}>
+        <div style={{background:'rgba(246,244,239,0.7)',backdropFilter:'blur(16px)',WebkitBackdropFilter:'blur(16px)',border:'0.5px solid rgba(217,210,195,0.85)',borderRadius:20,padding:'16px 18px'}}>
+          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:12}}>
+            <span style={{fontSize:11,fontWeight:500,letterSpacing:'0.07em',color:'#7B8887',textTransform:'uppercase'}}>Эта неделя</span>
+            <span style={{fontSize:13,color:'#7B8887',fontWeight:300}}>{week} из {target}</span>
           </div>
-          <WeekDots completed={completedThisWeek} target={targetPerWeek} />
-        </Card>
+          <div style={{display:'flex',gap:6}}>
+            {Array.from({length:target}).map((_,i)=>(
+              <div key={i} style={{flex:1,height:4,borderRadius:2,background:i<week?'#7B8F7A':'rgba(217,210,195,0.7)',transition:'background 0.3s'}}/>
+            ))}
+          </div>
+        </div>
       </motion.div>
 
-      {/* Stats */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
-        className="grid grid-cols-2 gap-3"
-      >
-        <Card>
-          <div className="flex items-center gap-2 mb-2">
-            <Flame size={14} className="text-warning" />
-            <span className="text-[11px] uppercase tracking-[0.04em] text-muted">Серия</span>
-          </div>
-          <p className="font-display font-normal text-dark" style={{ fontSize: 38, lineHeight: 1 }}>{streak}</p>
-          <p className="text-[11px] text-muted mt-1">дней подряд</p>
-        </Card>
-        <Card>
-          <div className="flex items-center gap-2 mb-2">
-            <Trophy size={14} className="text-accent" />
-            <span className="text-[11px] uppercase tracking-[0.04em] text-muted">Неделя</span>
-          </div>
-          <p className="font-display font-normal text-dark" style={{ fontSize: 38, lineHeight: 1 }}>{completedThisWeek}</p>
-          <p className="text-[11px] text-muted mt-1">тренировок</p>
-        </Card>
+      {/* stats 2-col */}
+      <motion.div initial={{opacity:0,y:16}} animate={{opacity:1,y:0}} transition={{delay:0.16}} style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
+        <StatCard icon={<Flame size={14} color="#C9A84C"/>} label="Серия" value={streak} unit="дней подряд"/>
+        <StatCard icon={<Trophy size={14} color="#7B8F7A"/>} label="Неделя" value={week} unit="тренировок"/>
       </motion.div>
 
-      {/* AI insight */}
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
-        <Card>
-          <div className="flex items-start gap-3">
-            <div className="w-8 h-8 rounded-full bg-accent/13 flex items-center justify-center shrink-0">
-              <Zap size={13} className="text-accent" />
-            </div>
-            <div>
-              <p className="text-[11px] uppercase tracking-[0.05em] text-muted mb-1">AI Инсайт</p>
-              <p className="text-[13px] text-text/80 leading-relaxed">{aiInsight}</p>
-            </div>
+      {/* ai insight */}
+      <motion.div initial={{opacity:0,y:16}} animate={{opacity:1,y:0}} transition={{delay:0.2}}>
+        <div style={{background:'rgba(246,244,239,0.7)',backdropFilter:'blur(16px)',WebkitBackdropFilter:'blur(16px)',border:'0.5px solid rgba(217,210,195,0.85)',borderRadius:20,padding:'16px 18px',display:'flex',gap:14,alignItems:'flex-start'}}>
+          <div style={{width:34,height:34,borderRadius:17,background:'rgba(123,143,122,0.14)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+            <Zap size={14} color="#7B8F7A"/>
           </div>
-        </Card>
+          <div>
+            <p style={{fontSize:10,fontWeight:500,letterSpacing:'0.08em',color:'#7B8887',textTransform:'uppercase',marginBottom:5}}>AI Инсайт</p>
+            <p style={{fontSize:13,color:'rgba(65,70,75,0.78)',lineHeight:1.55,fontWeight:300}}>{insight}</p>
+          </div>
+        </div>
       </motion.div>
     </div>
   )
 }
 
-function TodayWorkoutCard({ workout }: { workout: Workout }) {
+/* ── sub-components ─────────────────────────────────────── */
+
+function TodayCard({workout}:{workout:Workout}) {
   return (
-    <div
-      className="rounded-[24px] p-[22px] relative overflow-hidden"
-      style={{ background: 'linear-gradient(135deg, rgba(123,143,122,0.92), rgba(65,70,75,0.95))' }}
-    >
-      <div
-        className="absolute -top-10 -right-8 w-36 h-36 rounded-full pointer-events-none"
-        style={{ background: 'rgba(255,255,255,0.07)' }}
-      />
-      <div className="relative">
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex-1 min-w-0">
-            <Badge variant="accent" className="mb-2 bg-white/15 text-white/90 border-white/20">Сегодня</Badge>
-            <h2 className="font-display font-normal text-white" style={{ fontSize: 24, lineHeight: 1.15 }}>
-              {workout.title}
-            </h2>
-            {workout.subtitle && (
-              <p className="text-[12px] text-white/60 mt-1">{workout.subtitle}</p>
-            )}
-          </div>
-          <div className="flex flex-col items-end gap-2 ml-3 shrink-0">
-            <span className="text-[13px] font-medium text-white/90">{workout.estimated_duration} мин</span>
-            <div className="flex gap-0.5">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <div key={i} className={`w-1.5 h-1.5 rounded-full ${i < workout.difficulty ? 'bg-white/80' : 'bg-white/20'}`} />
-              ))}
-            </div>
-          </div>
+    <div style={{borderRadius:22,overflow:'hidden',position:'relative',padding:'22px 20px 20px'}}>
+      {/* dark gradient bg */}
+      <div style={{position:'absolute',inset:0,background:'linear-gradient(145deg,#3D4147 0%,#2E3136 100%)',zIndex:0}}/>
+      {/* sage glow */}
+      <div style={{position:'absolute',top:'-30%',right:'-10%',width:200,height:200,borderRadius:'50%',background:'radial-gradient(circle,rgba(123,143,122,0.22) 0%,transparent 70%)',pointerEvents:'none',zIndex:1}}/>
+
+      <div style={{position:'relative',zIndex:2}}>
+        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:6}}>
+          <span style={{fontSize:10,fontWeight:500,letterSpacing:'0.09em',color:'rgba(255,255,255,0.4)',textTransform:'uppercase'}}>Сегодня</span>
+          <span style={{fontSize:11,color:'rgba(255,255,255,0.45)',fontWeight:300,background:'rgba(255,255,255,0.08)',borderRadius:20,padding:'3px 10px'}}>{workout.estimated_duration} мин</span>
         </div>
+
+        <h2 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:28,fontWeight:400,color:'#fff',lineHeight:1.15,marginBottom:8}}>
+          {workout.title}
+        </h2>
+
         {workout.ai_note && (
-          <p className="text-[12px] text-white/65 leading-relaxed mb-4 border-l border-white/25 pl-3">
+          <p style={{fontSize:12,color:'rgba(255,255,255,0.48)',lineHeight:1.5,marginBottom:18,fontWeight:300,borderLeft:'1.5px solid rgba(255,255,255,0.15)',paddingLeft:12}}>
             {workout.ai_note}
           </p>
         )}
-        <Link
-          href={`/app/workout/${workout.id}`}
-          className="flex items-center justify-center gap-2 w-full py-4 rounded-2xl text-white text-[15px] font-medium tracking-[0.02em] active:scale-95 transition-transform"
-          style={{ background: 'rgba(255,255,255,0.18)', border: '0.5px solid rgba(255,255,255,0.35)' }}
-        >
+
+        <Link href={`/app/workout/${workout.id}`}
+          style={{display:'flex',alignItems:'center',justifyContent:'center',gap:8,background:'rgba(246,244,239,0.94)',borderRadius:14,padding:'15px 20px',color:'#41464B',fontSize:14,fontWeight:500,letterSpacing:'0.01em',textDecoration:'none',transition:'opacity 0.15s'}}>
+          <Play size={14} fill="#41464B"/>
           Начать тренировку
-          <ChevronRight size={17} />
+          <ChevronRight size={15} color="#7B8887"/>
         </Link>
       </div>
     </div>
   )
 }
 
-function UpcomingWorkoutCard({ workout }: { workout: Workout }) {
+function UpcomingCard({workout}:{workout:Workout}) {
   return (
-    <Card>
-      <p className="text-[11px] uppercase tracking-[0.05em] text-muted mb-2">Следующая тренировка</p>
-      <h2 className="font-display font-normal text-dark text-[22px] mb-1">{workout.title}</h2>
-      <p className="text-[12px] text-muted mb-4">
-        {getDayOfWeek(new Date(workout.scheduled_date))} · {workout.estimated_duration} мин
-      </p>
-      <div
-        className="rounded-[14px] px-4 py-3 text-[13px] text-muted"
-        style={{ background: 'rgba(217,210,195,0.3)', border: '0.5px solid rgba(217,210,195,0.85)' }}
-      >
+    <div style={{background:'rgba(246,244,239,0.7)',backdropFilter:'blur(16px)',WebkitBackdropFilter:'blur(16px)',border:'0.5px solid rgba(217,210,195,0.85)',borderRadius:20,padding:'18px 20px'}}>
+      <p style={{fontSize:10,fontWeight:500,letterSpacing:'0.08em',color:'#7B8887',textTransform:'uppercase',marginBottom:8}}>Следующая тренировка</p>
+      <h2 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:24,fontWeight:400,color:'#41464B',marginBottom:4}}>{workout.title}</h2>
+      <p style={{fontSize:12,color:'#7B8887',fontWeight:300,marginBottom:16}}>{getDayOfWeek(new Date(workout.scheduled_date))} · {workout.estimated_duration} мин</p>
+      <div style={{background:'rgba(217,210,195,0.35)',border:'0.5px solid rgba(217,210,195,0.85)',borderRadius:12,padding:'12px 14px',fontSize:12.5,color:'#7B8887',fontWeight:300,lineHeight:1.5}}>
         Сегодня день отдыха — дай мышцам восстановиться
       </div>
-    </Card>
-  )
-}
-
-function RestDayCard() {
-  return (
-    <Card>
-      <div className="text-center py-6">
-        <h2 className="font-display font-normal text-dark text-[22px] mb-2">Все тренировки недели выполнены</h2>
-        <p className="text-[13px] text-muted">Программа следующей недели уже готова.</p>
-      </div>
-    </Card>
-  )
-}
-
-function WeekDots({ completed, target }: { completed: number; target: number }) {
-  return (
-    <div className="flex gap-2">
-      {Array.from({ length: target }).map((_, i) => (
-        <div
-          key={i}
-          className={`flex-1 h-[3px] rounded-full transition-all duration-300 ${
-            i < completed ? 'bg-accent' : 'bg-surface3'
-          }`}
-        />
-      ))}
     </div>
   )
 }
 
-function HomeSkeleton() {
+function RestCard() {
   return (
-    <div className="px-4 pt-14 pb-28 space-y-3">
-      <div className="space-y-1.5 mb-2">
-        <div className="h-3 w-16 skeleton rounded-full" />
-        <div className="h-9 w-36 skeleton rounded-full" />
+    <div style={{background:'rgba(246,244,239,0.7)',backdropFilter:'blur(16px)',WebkitBackdropFilter:'blur(16px)',border:'0.5px solid rgba(217,210,195,0.85)',borderRadius:20,padding:'28px 20px',textAlign:'center'}}>
+      <div style={{width:48,height:48,borderRadius:24,background:'rgba(123,143,122,0.13)',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 14px'}}>
+        <Trophy size={20} color="#7B8F7A"/>
       </div>
-      <div className="h-48 skeleton rounded-[24px]" />
-      <div className="h-16 skeleton rounded-[20px]" />
-      <div className="grid grid-cols-2 gap-3">
-        <div className="h-28 skeleton rounded-[20px]" />
-        <div className="h-28 skeleton rounded-[20px]" />
-      </div>
+      <h2 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:22,fontWeight:400,color:'#41464B',marginBottom:6}}>Все тренировки выполнены</h2>
+      <p style={{fontSize:13,color:'#7B8887',fontWeight:300}}>Программа следующей недели готова</p>
     </div>
   )
 }
 
-function calcStreak(dates: string[]): number {
-  if (!dates.length) return 0
-  let streak = 0
-  let current = new Date()
-  current.setHours(0, 0, 0, 0)
-  const sorted = [...new Set(dates.map(d => new Date(d).toDateString()))].sort().reverse()
-  for (const dateStr of sorted) {
-    const date = new Date(dateStr)
-    const diff = Math.floor((current.getTime() - date.getTime()) / 86400000)
-    if (diff <= 1) { streak++; current = date }
-    else break
-  }
-  return streak
+function StatCard({icon,label,value,unit}:{icon:React.ReactNode;label:string;value:number;unit:string}) {
+  return (
+    <div style={{background:'rgba(246,244,239,0.7)',backdropFilter:'blur(16px)',WebkitBackdropFilter:'blur(16px)',border:'0.5px solid rgba(217,210,195,0.85)',borderRadius:20,padding:'16px 18px'}}>
+      <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:10}}>
+        {icon}
+        <span style={{fontSize:10,fontWeight:500,letterSpacing:'0.07em',color:'#7B8887',textTransform:'uppercase'}}>{label}</span>
+      </div>
+      <p style={{fontFamily:"'Cormorant Garamond',serif",fontSize:44,fontWeight:400,color:'#41464B',lineHeight:1}}>{value}</p>
+      <p style={{fontSize:11,color:'#7B8887',marginTop:4,fontWeight:300}}>{unit}</p>
+    </div>
+  )
 }
 
-function getThisWeekCount(dates: string[]): number {
-  const now = new Date()
-  const start = new Date(now)
-  start.setDate(now.getDate() - now.getDay() + 1)
-  start.setHours(0, 0, 0, 0)
-  return dates.filter(d => new Date(d) >= start).length
+function Skeleton() {
+  return (
+    <div className="px-5 pt-16 pb-32 space-y-4">
+      <div className="skeleton h-3 w-24 rounded-full"/>
+      <div className="skeleton h-11 w-44 rounded-xl"/>
+      <div className="skeleton h-44 rounded-[22px]"/>
+      <div className="skeleton h-16 rounded-[20px]"/>
+      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
+        <div className="skeleton h-28 rounded-[20px]"/>
+        <div className="skeleton h-28 rounded-[20px]"/>
+      </div>
+      <div className="skeleton h-20 rounded-[20px]"/>
+    </div>
+  )
 }

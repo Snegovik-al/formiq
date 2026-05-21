@@ -3,139 +3,151 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { LogOut, ChevronRight, Crown, User, Bell, Shield, CreditCard } from 'lucide-react'
+import { LogOut, ChevronRight, Crown, User, Bell, Shield, CreditCard, Sparkles } from 'lucide-react'
 import { signOut } from '@/lib/auth/client'
-import { Card } from '@/components/ui/Card'
 
 interface ProfileData {
-  name: string
-  email: string
-  plan: string
-  trialEnd: string | null
+  name: string; email: string; plan: string; trialEnd: string|null
+}
+
+const PLAN_LABELS: Record<string,string> = {
+  trial:'Пробный период', monthly:'Pro · Ежемесячно', yearly:'Pro · Ежегодно', none:'Без подписки',
 }
 
 export default function ProfilePage() {
   const router = useRouter()
-  const [profile, setProfile] = useState<ProfileData | null>(null)
+  const [profile, setProfile] = useState<ProfileData|null>(null)
 
-  useEffect(() => {
-    async function load() {
-      const res = await fetch('/api/auth/me')
-      const { user } = await res.json()
-      if (!user) return
-      setProfile({
-        name: user.name ?? 'Пользователь',
-        email: user.email ?? '',
-        plan: user.subscription?.planId ?? 'none',
-        trialEnd: user.subscription?.trialEnd ?? null,
-      })
-    }
-    load()
-  }, [])
+  useEffect(()=>{
+    fetch('/api/auth/me').then(r=>r.json()).then(({user})=>{
+      if(!user) return
+      setProfile({ name:user.name??'Пользователь', email:user.email??'', plan:user.subscription?.planId??'none', trialEnd:user.subscription?.trialEnd??null })
+    })
+  },[])
 
-  async function logout() {
-    await signOut()
-    router.replace('/')
-  }
+  async function logout() { await signOut(); router.replace('/') }
 
-  const trialDaysLeft = profile?.trialEnd
-    ? Math.max(0, Math.ceil((new Date(profile.trialEnd).getTime() - Date.now()) / 86400000))
-    : 0
-
-  const planLabel: Record<string, string> = {
-    trial: 'Пробный период', monthly: 'Ежемесячно', yearly: 'Ежегодно', none: 'Нет подписки',
-  }
+  const trialDays = profile?.trialEnd ? Math.max(0,Math.ceil((new Date(profile.trialEnd).getTime()-Date.now())/86400000)) : 0
+  const isPro = profile?.plan==='monthly'||profile?.plan==='yearly'
 
   return (
-    <div className="px-4 pt-14 pb-28 space-y-3">
-      <h1 className="font-display font-normal text-dark mb-4" style={{ fontSize: 32 }}>Профиль</h1>
+    <div style={{padding:'56px 20px 120px',display:'flex',flexDirection:'column',gap:14}}>
 
-      {/* Profile hero */}
-      <div
-        className="rounded-[24px] p-[26px] text-center"
-        style={{ background: 'linear-gradient(135deg, rgba(123,143,122,0.92), rgba(65,70,75,0.95))' }}
-      >
-        <div className="w-[66px] h-[66px] rounded-full flex items-center justify-center mx-auto mb-3"
-          style={{ background: 'rgba(255,255,255,0.18)' }}>
-          <span className="font-display font-normal text-white" style={{ fontSize: 28 }}>
-            {profile?.name[0]?.toUpperCase() ?? '?'}
-          </span>
-        </div>
-        <p className="font-display font-normal text-white" style={{ fontSize: 26 }}>{profile?.name ?? '...'}</p>
-        <p className="text-[12px] text-white/60 mt-1">{profile?.email ?? ''}</p>
-        <span
-          className="inline-block mt-3 px-4 py-1 rounded-full text-[12px] font-medium"
-          style={{
-            background: profile?.plan === 'trial'
-              ? 'rgba(255,200,0,0.25)'
-              : profile?.plan === 'monthly' || profile?.plan === 'yearly'
-              ? 'rgba(123,143,122,0.25)'
-              : 'rgba(255,255,255,0.15)',
-            color: profile?.plan === 'trial' ? '#ffd700'
-              : profile?.plan === 'monthly' || profile?.plan === 'yearly' ? '#90ee90'
-              : 'rgba(255,255,255,0.7)',
-          }}
-        >
-          {planLabel[profile?.plan ?? 'none']}
-        </span>
-      </div>
+      <h1 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:38,fontWeight:400,color:'#41464B',lineHeight:1.05,marginBottom:4}}>
+        Профиль
+      </h1>
 
-      {/* Subscription card */}
-      <Card>
-        <div className="flex items-center gap-2 mb-3">
-          <Crown size={15} className="text-gold" />
-          <p className="text-[11px] uppercase tracking-[0.05em] text-muted">Подписка</p>
-        </div>
-        {profile?.plan === 'trial' && trialDaysLeft > 0 && (
-          <div
-            className="rounded-[14px] px-3 py-2.5 mb-3 text-[12px]"
-            style={{ background: 'rgba(255,200,0,0.10)', border: '0.5px solid rgba(255,200,0,0.30)', color: '#8B6914' }}
-          >
-            Пробный период истекает через {trialDaysLeft}{' '}
-            {trialDaysLeft === 1 ? 'день' : trialDaysLeft < 5 ? 'дня' : 'дней'}
+      {/* ── hero card ──────────────────────────────────── */}
+      <motion.div initial={{opacity:0,y:16}} animate={{opacity:1,y:0}}>
+        <div style={{
+          borderRadius:24,padding:'24px 22px',
+          background:'linear-gradient(145deg,rgba(65,70,75,0.92) 0%,rgba(50,55,60,0.96) 100%)',
+          border:'0.5px solid rgba(255,255,255,0.07)',
+          position:'relative',overflow:'hidden',
+        }}>
+          {/* sage glow */}
+          <div style={{position:'absolute',top:'-40%',right:'-20%',width:220,height:220,borderRadius:'50%',background:'radial-gradient(circle,rgba(123,143,122,0.20) 0%,transparent 70%)',pointerEvents:'none'}}/>
+
+          <div style={{display:'flex',alignItems:'center',gap:14,marginBottom:16,position:'relative'}}>
+            {/* avatar */}
+            <div style={{width:56,height:56,borderRadius:18,background:'rgba(255,255,255,0.12)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,border:'0.5px solid rgba(255,255,255,0.18)'}}>
+              <span style={{fontFamily:"'Cormorant Garamond',serif",fontSize:26,fontWeight:400,color:'#fff'}}>
+                {profile?.name[0]?.toUpperCase()??'?'}
+              </span>
+            </div>
+            <div>
+              <p style={{fontFamily:"'Cormorant Garamond',serif",fontSize:26,fontWeight:400,color:'#fff',lineHeight:1.1}}>
+                {profile?.name??'...'}
+              </p>
+              <p style={{fontSize:12,color:'rgba(255,255,255,0.45)',fontWeight:300,marginTop:2}}>{profile?.email}</p>
+            </div>
           </div>
-        )}
-        <button
-          onClick={() => router.push('/app/subscription')}
-          className="w-full py-4 rounded-2xl text-white text-[15px] font-medium active:scale-95 transition-transform"
-          style={{ background: '#41464B' }}
-        >
-          {profile?.plan === 'trial' ? 'Перейти на Pro' : 'Управление подпиской'}
-        </button>
-      </Card>
 
-      {/* Menu */}
-      <Card className="divide-y divide-border/50 p-0 overflow-hidden">
-        {[
-          { icon: User,       label: 'Параметры профиля', onClick: () => {} },
-          { icon: Bell,       label: 'Уведомления',        onClick: () => {} },
-          { icon: Shield,     label: 'Конфиденциальность', onClick: () => {} },
-          { icon: CreditCard, label: 'Биллинг',            onClick: () => router.push('/app/subscription') },
-        ].map(({ icon: Icon, label, onClick }, i) => (
-          <button
-            key={i}
-            onClick={onClick}
-            className="w-full flex items-center gap-3 px-[18px] py-[14px] text-text active:bg-surface2/50 transition-colors"
+          {/* plan badge */}
+          <div style={{display:'inline-flex',alignItems:'center',gap:5,background:'rgba(255,255,255,0.10)',borderRadius:20,padding:'5px 12px',marginBottom:16,position:'relative'}}>
+            <Crown size={11} color={isPro?'#C9A84C':'rgba(255,255,255,0.5)'}/>
+            <span style={{fontSize:11,fontWeight:500,color:isPro?'#C9A84C':'rgba(255,255,255,0.6)',letterSpacing:'0.02em'}}>
+              {PLAN_LABELS[profile?.plan??'none']}
+            </span>
+          </div>
+
+          {/* trial notice */}
+          {profile?.plan==='trial' && trialDays>0 && (
+            <div style={{background:'rgba(201,168,76,0.14)',border:'0.5px solid rgba(201,168,76,0.35)',borderRadius:12,padding:'10px 14px',marginBottom:16,position:'relative'}}>
+              <p style={{fontSize:12,color:'#C9A84C',fontWeight:300,lineHeight:1.5}}>
+                Пробный период истекает через{' '}
+                <span style={{fontWeight:500}}>{trialDays} {trialDays===1?'день':trialDays<5?'дня':'дней'}</span>
+              </p>
+            </div>
+          )}
+
+          {/* CTA */}
+          <button onClick={()=>router.push('/app/subscription')} style={{
+            width:'100%',padding:'14px 0',borderRadius:14,border:'none',cursor:'pointer',
+            background:'rgba(246,244,239,0.94)',
+            color:'#41464B',fontSize:14,fontWeight:500,letterSpacing:'0.01em',
+            display:'flex',alignItems:'center',justifyContent:'center',gap:8,
+            position:'relative',
+          }}
+            onTouchStart={e=>e.currentTarget.style.opacity='0.88'}
+            onTouchEnd={e=>e.currentTarget.style.opacity='1'}
           >
-            <Icon size={17} className="text-muted" />
-            <span className="flex-1 text-left text-[14px]">{label}</span>
-            <ChevronRight size={14} className="text-muted" />
+            <Sparkles size={14} color="#7B8F7A"/>
+            {isPro ? 'Управление подпиской' : 'Перейти на Pro'}
           </button>
-        ))}
-      </Card>
+        </div>
+      </motion.div>
 
-      {/* Logout */}
-      <motion.button
-        whileTap={{ scale: 0.97 }}
-        onClick={logout}
-        className="w-full flex items-center gap-3 px-[18px] py-4 rounded-[18px] text-danger text-[14px] active:scale-95 transition-transform"
-        style={{ background: 'rgba(192,57,43,0.08)', border: '0.5px solid rgba(192,57,43,0.25)' }}
-      >
-        <LogOut size={17} />
-        Выйти из аккаунта
-      </motion.button>
+      {/* ── menu rows ──────────────────────────────────── */}
+      <motion.div initial={{opacity:0,y:16}} animate={{opacity:1,y:0}} transition={{delay:0.07}}>
+        <div style={{background:'rgba(246,244,239,0.72)',backdropFilter:'blur(16px)',WebkitBackdropFilter:'blur(16px)',border:'0.5px solid rgba(217,210,195,0.85)',borderRadius:20,overflow:'hidden'}}>
+          {[
+            {icon:User,   label:'Параметры профиля', onClick:()=>{}},
+            {icon:Bell,   label:'Уведомления',        onClick:()=>{}},
+            {icon:Shield, label:'Конфиденциальность', onClick:()=>{}},
+            {icon:CreditCard,label:'Биллинг',         onClick:()=>router.push('/app/subscription')},
+          ].map(({icon:Icon,label,onClick},i,arr)=>(
+            <button key={i} onClick={onClick} style={{
+              width:'100%',display:'flex',alignItems:'center',gap:14,
+              padding:'15px 18px',
+              borderBottom: i<arr.length-1 ? '0.5px solid rgba(217,210,195,0.55)' : 'none',
+              background:'none',border:'none',cursor:'pointer',
+              transition:'background 0.15s',
+            }}
+              onTouchStart={e=>e.currentTarget.style.background='rgba(217,210,195,0.30)'}
+              onTouchEnd={e=>e.currentTarget.style.background='none'}
+            >
+              <div style={{width:32,height:32,borderRadius:10,background:'rgba(217,210,195,0.45)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                <Icon size={15} color="#41464B"/>
+              </div>
+              <span style={{flex:1,textAlign:'left',fontSize:14,color:'#41464B',fontWeight:400}}>{label}</span>
+              <ChevronRight size={14} color="rgba(65,70,75,0.30)"/>
+            </button>
+          ))}
+        </div>
+      </motion.div>
 
-      <p className="text-center text-[11px] text-muted pb-2">FORMIQ · Данные защищены</p>
+      {/* ── logout ─────────────────────────────────────── */}
+      <motion.div initial={{opacity:0,y:16}} animate={{opacity:1,y:0}} transition={{delay:0.11}}>
+        <button onClick={logout} style={{
+          width:'100%',display:'flex',alignItems:'center',justifyContent:'center',gap:8,
+          padding:'15px 0',borderRadius:16,cursor:'pointer',
+          background:'rgba(176,58,46,0.07)',
+          border:'0.5px solid rgba(176,58,46,0.20)',
+          color:'#B03A2E',fontSize:14,fontWeight:400,
+          transition:'opacity 0.15s',
+        }}
+          onTouchStart={e=>e.currentTarget.style.opacity='0.75'}
+          onTouchEnd={e=>e.currentTarget.style.opacity='1'}
+        >
+          <LogOut size={15}/>
+          Выйти из аккаунта
+        </button>
+      </motion.div>
+
+      <p style={{textAlign:'center',fontSize:11,color:'rgba(65,70,75,0.35)',paddingTop:4}}>
+        FORMIQ · Данные защищены
+      </p>
     </div>
   )
 }
