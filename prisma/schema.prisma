@@ -4,6 +4,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  schemas  = ["formiq"]
 }
 
 model User {
@@ -20,6 +21,8 @@ model User {
   workouts     Workout[]
   workoutLogs  WorkoutLog[]
   strengthRecs StrengthRecord[]
+
+  @@schema("formiq")
 }
 
 model UserProfile {
@@ -42,6 +45,8 @@ model UserProfile {
   forbiddenExercises String   @default("[]")
   injuryAreas        String   @default("[]")
   updatedAt          DateTime @updatedAt
+
+  @@schema("formiq")
 }
 
 model Subscription {
@@ -56,6 +61,8 @@ model Subscription {
   stripeCustId     String?
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
+
+  @@schema("formiq")
 }
 
 model Program {
@@ -69,6 +76,8 @@ model Program {
   aiRationale String?
   status      String    @default("active")
   workouts    Workout[]
+
+  @@schema("formiq")
 }
 
 model Workout {
@@ -89,6 +98,8 @@ model Workout {
   content       String
   createdAt     DateTime     @default(now())
   logs          WorkoutLog[]
+
+  @@schema("formiq")
 }
 
 model WorkoutLog {
@@ -105,6 +116,8 @@ model WorkoutLog {
   notes           String?
   exercisesData   String?
   createdAt       DateTime  @default(now())
+
+  @@schema("formiq")
 }
 
 model StrengthRecord {
@@ -118,4 +131,5 @@ model StrengthRecord {
   estimated1rm Float?
 
   @@unique([userId, exerciseId, date])
+  @@schema("formiq")
 }
